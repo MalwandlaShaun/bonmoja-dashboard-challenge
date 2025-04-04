@@ -63,7 +63,7 @@
                   </svg>
                   Deposit Funds
                 </button>
-                <button class="inline-flex justify-center items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button @click="openWithdrawalModal"  class="inline-flex justify-center items-center px-4 py-3 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 17a1 1 0 01-1-1V6.414l-3.293 3.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0l5 5a1 1 0 01-1.414 1.414L11 6.414V16a1 1 0 01-1 1z" clip-rule="evenodd" />
                   </svg>
@@ -282,13 +282,20 @@
         @close="closeDepositModal"
         @deposit-success="handleDepositSuccess"
     />
+
+  <!-- Withdrawal Modal -->
+    <withdraw-modal
+        :is-open="isWithdrawalModalOpen"
+        @close="closeWithdrawalModal"
+        @deposit-success="handleWithdrawalSuccess"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import DepositModal from '~/components/DepositModal.vue';
-
+import WithdrawModal from "~/components/WithdrawModal.vue";
 // State management
 const wallet = ref(null);
 const isWalletLoading = ref(true);
@@ -304,6 +311,8 @@ const searchQuery = ref('');
 
 // Modal state
 const isDepositModalOpen = ref(false);
+const isWithdrawalModalOpen = ref(false);
+
 
 // Computed property for filtered and searched transactions
 const filteredTransactions = computed(() => {
@@ -377,7 +386,7 @@ const fetchTransactions = async () => {
   }
 };
 
-// Format date 
+// Format date
 const formatDate = (dateString) => {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('en', {
@@ -415,6 +424,16 @@ const closeDepositModal = () => {
   isDepositModalOpen.value = false;
 };
 
+const openWithdrawalModal = () => {
+  isWithdrawalModalOpen.value = true;
+};
+
+const closeWithdrawalModal = () => {
+  isWithdrawalModalOpen.value = false;
+};
+
+
+
 // Handle successful deposit
 const handleDepositSuccess = (depositData) => {
   // In a real app, you would refresh wallet data after deposit
@@ -440,6 +459,34 @@ const handleDepositSuccess = (depositData) => {
   // Close the modal after 2 seconds
   setTimeout(() => {
     closeDepositModal();
+  }, 2000);
+};
+
+// Handle successful Withdrawal
+const handleWithdrawalSuccess = (WithdrawalData) => {
+  // In a real app, you would refresh wallet data after deposit
+  console.log('Deposit successful:', WithdrawalData);
+
+  // Simulate a wallet balance update
+  if (wallet.value) {
+    wallet.value.balance -= parseFloat(WithdrawalData.amount);
+  }
+
+  // Add a new transaction to the list
+  const newTransaction = {
+    id: `txn_${Date.now().toString().slice(-6)}`,
+    type: 'deposit',
+    amount: parseFloat(WithdrawalData.amount),
+    currency: 'ZAR',
+    status: 'success',
+    date: new Date().toISOString()
+  };
+
+  transactions.value = [newTransaction, ...transactions.value];
+
+  // Close the modal after 2 seconds
+  setTimeout(() => {
+    closeWithdrawalModal();
   }, 2000);
 };
 

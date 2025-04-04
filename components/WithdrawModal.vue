@@ -14,8 +14,8 @@
         </button>
       </div>
 
-      <!-- Form -->
-      <form @submit.prevent="handleSubmit">
+      <!-- Form Step -->
+      <div v-if="step === 'form'">
         <div class="space-y-4">
           <!-- Amount input -->
           <div>
@@ -29,62 +29,61 @@
                   type="number"
                   v-model="amount"
                   min="10"
-                  step="10"
-                  required
                   class="pl-8 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                   placeholder="0.00"
               />
             </div>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Minimum withdrawal: R10.00</p>
+            <p v-if="amountError" class="mt-1 text-sm text-red-600">{{ amountError }}</p>
+            <p v-else class="mt-1 text-xs text-gray-500 dark:text-gray-400">Minimum withdrawal: R10.00</p>
           </div>
 
           <!-- Withdrawal method -->
           <div>
-            <label for="method" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Withdrawal Method</label>
+            <label for="withdrawMethod" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Withdrawal Method</label>
             <select
-                id="method"
-                v-model="selectedMethod"
+                id="withdrawMethod"
+                v-model="withdrawMethod"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                required
             >
               <option value="" disabled>Select a withdrawal method</option>
-              <option v-for="method in withdrawalMethods" :key="method.id" :value="method.id">
-                {{ method.name }}
-              </option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="mobile_money">Mobile Money</option>
+              <option value="e_wallet">E-Wallet</option>
             </select>
+            <p v-if="methodError" class="mt-1 text-sm text-red-600">{{ methodError }}</p>
           </div>
 
           <!-- Account details based on selected method -->
-          <div v-if="selectedMethod">
-            <div v-if="selectedMethod === 'bank_transfer'">
+          <div v-if="withdrawMethod">
+            <div v-if="withdrawMethod === 'bank_transfer'">
               <label for="accountNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bank Account Number</label>
               <input
                   id="accountNumber"
                   type="text"
                   v-model="accountDetails.accountNumber"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
               />
+              <p v-if="accountError" class="mt-1 text-sm text-red-600">{{ accountError }}</p>
             </div>
-            <div v-else-if="selectedMethod === 'mobile_money'">
+            <div v-else-if="withdrawMethod === 'mobile_money'">
               <label for="phoneNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Mobile Number</label>
               <input
                   id="phoneNumber"
                   type="tel"
                   v-model="accountDetails.phoneNumber"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
               />
+              <p v-if="accountError" class="mt-1 text-sm text-red-600">{{ accountError }}</p>
             </div>
-            <div v-else-if="selectedMethod === 'e_wallet'">
+            <div v-else-if="withdrawMethod === 'e_wallet'">
               <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">E-Wallet Email</label>
               <input
                   id="email"
                   type="email"
                   v-model="accountDetails.email"
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  required
               />
+              <p v-if="accountError" class="mt-1 text-sm text-red-600">{{ accountError }}</p>
             </div>
           </div>
         </div>
@@ -92,127 +91,196 @@
         <!-- Submit button -->
         <div class="mt-6">
           <button
-              type="submit"
-              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              :disabled="isSubmitting"
+              @click="submitWithdrawal"
+              class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <svg v-if="isSubmitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            {{ isSubmitting ? 'Processing...' : 'Withdraw Funds' }}
+            Withdraw Funds
           </button>
         </div>
-      </form>
+      </div>
 
-      <!-- Success/Error message -->
-      <div v-if="submissionState" class="mt-4 text-center p-4 rounded-md" :class="{
-        'bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-400': submissionState === 'success',
-        'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-400': submissionState === 'error'
-      }">
-        <p v-if="submissionState === 'success'">
-          Withdrawal request submitted successfully! Your funds will be processed shortly.
+      <!-- Loading Step -->
+      <div v-else-if="step === 'loading'" class="py-8 flex flex-col items-center">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600 dark:text-gray-300">Processing your withdrawal...</p>
+      </div>
+
+      <!-- Success Step -->
+      <div v-else-if="step === 'success'" class="py-8 flex flex-col items-center">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-500 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">Withdrawal Successful!</h3>
+        <p class="text-gray-600 dark:text-gray-300 text-center mb-6">
+          You have successfully withdrawn {{ formatCurrency(parseFloat(amount), 'ZAR') }} ZAR.
         </p>
-        <p v-else-if="submissionState === 'error'">
-          Error processing withdrawal. Please check your details and try again.
+        <button
+            @click="closeModal"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+
+      <!-- Error Step -->
+      <div v-else-if="step === 'error'" class="py-8 flex flex-col items-center">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 dark:text-white mb-2">Withdrawal Failed</h3>
+        <p class="text-gray-600 dark:text-gray-300 text-center mb-6">
+          There was an issue processing your withdrawal. Please try again.
         </p>
+        <div class="flex space-x-3">
+          <button
+              @click="step = 'form'"
+              class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+          >
+            Try Again
+          </button>
+          <button
+              @click="closeModal"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'WithdrawModal',
-  props: {
-    isOpen: {
-      type: Boolean,
-      default: false
-    },
-    walletBalance: {
-      type: Number,
-      default: 0
-    },
-    currency: {
-      type: String,
-      default: 'ZAR'
-    }
+<script setup>
+import { ref, watch } from 'vue';
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: false
   },
-  data() {
-    return {
-      amount: '',
-      selectedMethod: '',
-      accountDetails: {
-        accountNumber: '',
-        phoneNumber: '',
-        email: ''
-      },
-      isSubmitting: false,
-      submissionState: null, // null, 'success', or 'error'
-      withdrawalMethods: [
-        { id: 'bank_transfer', name: 'Bank Transfer' },
-        { id: 'mobile_money', name: 'Mobile Money' },
-        { id: 'e_wallet', name: 'E-Wallet' }
-      ]
-    }
+  walletBalance: {
+    type: Number,
+    default: 0 ? 0 : 7250.50,
   },
-  watch: {
-    isOpen(newVal) {
-      if (newVal) {
-        this.resetForm();
-      }
-    }
-  },
-  methods: {
-    closeModal() {
-      this.$emit('close');
-    },
-    resetForm() {
-      this.amount = '';
-      this.selectedMethod = '';
-      this.accountDetails = {
-        accountNumber: '',
-        phoneNumber: '',
-        email: ''
-      };
-      this.isSubmitting = false;
-      this.submissionState = null;
-    },
-    handleSubmit() {
-      // Validate amount against wallet balance
-      if (parseFloat(this.amount) > this.walletBalance) {
-        this.submissionState = 'error';
-        return;
-      }
-
-      this.isSubmitting = true;
-      this.submissionState = null;
-
-      // Simulate API call with setTimeout
-      setTimeout(() => {
-        // Randomly succeed or fail for demo purposes (80% success rate)
-        const isSuccess = Math.random() < 0.8;
-
-        this.isSubmitting = false;
-        this.submissionState = isSuccess ? 'success' : 'error';
-
-        // If successful, emit event to update wallet balance
-        if (isSuccess) {
-          this.$emit('withdrawal-success', {
-            amount: parseFloat(this.amount),
-            method: this.selectedMethod,
-            timestamp: new Date().toISOString()
-          });
-
-          // Automatically close after success (optional)
-          setTimeout(() => {
-            if (this.submissionState === 'success') {
-              this.closeModal();
-            }
-          }, 3000);
-        }
-      }, 1500);
-    }
+  currency: {
+    type: String,
+    default: 'ZAR'
   }
-}
+});
+
+const emit = defineEmits(['close', 'withdrawal-success']);
+
+// State management
+const amount = ref('');
+const amountError = ref('');
+const withdrawMethod = ref('');
+const methodError = ref('');
+const accountDetails = ref({
+  accountNumber: '',
+  phoneNumber: '',
+  email: ''
+});
+const accountError = ref('');
+const step = ref('form');
+
+// Format currency
+const formatCurrency = (amount, currency) => {
+  return new Intl.NumberFormat('en-ZA', {
+    style: 'currency',
+    currency: currency || 'ZAR',
+    currencyDisplay: 'symbol',
+    minimumFractionDigits: 2
+  }).format(amount).replace(currency, '');
+};
+
+// Validate form
+const validateForm = () => {
+  let isValid = true;
+
+  // Validate amount
+  if (!amount.value || parseFloat(amount.value) <= 0) {
+    amountError.value = 'Please enter a valid amount';
+    isValid = false;
+  } else if (parseFloat(amount.value) < 10) {
+    amountError.value = 'Minimum withdrawal amount is 10 ZAR';
+    isValid = false;
+  } else if (parseFloat(amount.value) > props.walletBalance) {
+    amountError.value = `You can't withdraw more than your balance (${formatCurrency(props.walletBalance, props.currency)} ${props.currency})`;
+    isValid = false;
+  } else {
+    amountError.value = '';
+  }
+
+  // Validate payment method
+  if (!withdrawMethod.value) {
+    methodError.value = 'Please select a withdrawal method';
+    isValid = false;
+  } else {
+    methodError.value = '';
+  }
+
+  // Validate account details
+  if (withdrawMethod.value === 'bank_transfer' && !accountDetails.value.accountNumber) {
+    accountError.value = 'Please enter your bank account number';
+    isValid = false;
+  } else if (withdrawMethod.value === 'mobile_money' && !accountDetails.value.phoneNumber) {
+    accountError.value = 'Please enter your mobile number';
+    isValid = false;
+  } else if (withdrawMethod.value === 'e_wallet' && !accountDetails.value.email) {
+    accountError.value = 'Please enter your e-wallet email';
+    isValid = false;
+  } else {
+    accountError.value = '';
+  }
+
+  return isValid;
+};
+
+// Submit the withdrawal
+const submitWithdrawal = () => {
+  if (!validateForm()) return;
+
+  step.value = 'loading';
+
+  // Simulate API call
+  setTimeout(() => {
+    // 80% chance of success for demo
+    if (Math.random() < 0.8) {
+      step.value = 'success';
+      emit('withdrawal-success', {
+        amount: parseFloat(amount.value),
+        method: withdrawMethod.value,
+        date: new Date().toISOString()
+      });
+    } else {
+      step.value = 'error';
+    }
+  }, 1000);
+};
+
+// Close the modal
+const closeModal = () => {
+  emit('close');
+};
+
+// Reset form when modal closes
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    amount.value = '';
+    withdrawMethod.value = '';
+    accountDetails.value = {
+      accountNumber: '',
+      phoneNumber: '',
+      email: ''
+    };
+    amountError.value = '';
+    methodError.value = '';
+    accountError.value = '';
+    step.value = 'form';
+  }
+});
 </script>

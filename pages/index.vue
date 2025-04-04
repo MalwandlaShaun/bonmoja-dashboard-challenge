@@ -23,7 +23,7 @@
                     <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <span class="ml-2 text-gray-700 hidden md:block">John Doe</span>
+                <span class="ml-2 text-gray-700 hidden md:block">Shaun Hlungwani</span>
               </div>
             </div>
           </div>
@@ -83,11 +83,11 @@
               <div class="space-y-4">
                 <div class="flex justify-between items-center">
                   <span class="text-gray-600">Last deposit</span>
-                  <span class="text-gray-900 font-medium">R2,000.00</span>
+                  <span class="text-gray-900 font-medium">{{ lastDeposit ? "R" + lastDeposit +'.00':'R2,000.00' }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="text-gray-600">Last withdrawal</span>
-                  <span class="text-gray-900 font-medium">R500.00</span>
+                  <span class="text-gray-900 font-medium">{{ lastWithdrawal ? "R" + lastWithdrawal +'.00':'R500.00' }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                   <span class="text-gray-600">Total transactions</span>
@@ -286,8 +286,10 @@
   <!-- Withdrawal Modal -->
     <withdraw-modal
         :is-open="isWithdrawalModalOpen"
+        :wallet-balance="wallet?.value?.balance"
+        :currency="wallet?.value?.currency"
         @close="closeWithdrawalModal"
-        @deposit-success="handleWithdrawalSuccess"
+        @withdrawal-success="handleWithdrawalSuccess"
     />
   </div>
 </template>
@@ -304,6 +306,9 @@ const walletError = ref(null);
 const transactions = ref([]);
 const isTransactionsLoading = ref(true);
 const transactionsError = ref(null);
+
+let lastWithdrawal = ref(0)
+let lastDeposit = ref(0)
 
 // Filter and search
 const filter = ref('all');
@@ -464,8 +469,8 @@ const handleDepositSuccess = (depositData) => {
 
 // Handle successful Withdrawal
 const handleWithdrawalSuccess = (WithdrawalData) => {
-  // In a real app, you would refresh wallet data after deposit
-  console.log('Deposit successful:', WithdrawalData);
+  // In a real app, you would refresh wallet data after Withdrawal
+  console.log('Withdrawal successful:', WithdrawalData);
 
   // Simulate a wallet balance update
   if (wallet.value) {
@@ -475,12 +480,14 @@ const handleWithdrawalSuccess = (WithdrawalData) => {
   // Add a new transaction to the list
   const newTransaction = {
     id: `txn_${Date.now().toString().slice(-6)}`,
-    type: 'deposit',
+    type: 'withdrawal',
     amount: parseFloat(WithdrawalData.amount),
     currency: 'ZAR',
     status: 'success',
     date: new Date().toISOString()
   };
+
+  lastWithdrawal = WithdrawalData.amount
 
   transactions.value = [newTransaction, ...transactions.value];
 

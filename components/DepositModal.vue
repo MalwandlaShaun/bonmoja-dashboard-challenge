@@ -86,21 +86,21 @@
         <button
             v-if="step === 'form'"
             @click="closeModal"
-            class="btn text-gray-700 bg-gray-200 hover:bg-gray-300 mr-2"
+            class="w-50 flex justify-center py-3 px-4 mr-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           Cancel
         </button>
         <button
             v-if="step === 'form'"
             @click="submitDeposit"
-            class="btn-primary"
+            class="w-50 flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Deposit
         </button>
         <button
             v-if="step === 'success' || step === 'error'"
             @click="closeModal"
-            class="btn-primary"
+            class="w-50 flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Close
         </button>

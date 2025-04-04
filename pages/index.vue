@@ -319,11 +319,10 @@ const isDepositModalOpen = ref(false);
 const isWithdrawalModalOpen = ref(false);
 
 
-// Computed property for filtered and searched transactions
 const filteredTransactions = computed(() => {
   let results = transactions.value;
 
-  // Apply type filter
+  // type filter
   if (filter.value === 'deposit') {
     results = results.filter(t => t.type === 'deposit');
   } else if (filter.value === 'withdrawal') {
@@ -334,7 +333,7 @@ const filteredTransactions = computed(() => {
     results = results.filter(t => t.status === 'failed');
   }
 
-  // Apply search filter if search query exists
+  //  search filter if search query exists
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase();
     results = results.filter(t =>
@@ -458,6 +457,8 @@ const handleDepositSuccess = (depositData) => {
     status: 'success',
     date: new Date().toISOString()
   };
+
+  lastDeposit = depositData.amount
 
   transactions.value = [newTransaction, ...transactions.value];
 

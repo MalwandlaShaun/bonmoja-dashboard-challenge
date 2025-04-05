@@ -2,7 +2,7 @@
 
 A responsive wallet transaction dashboard for Bonmoja's iGaming platform, focused on trust, speed, polish, and mobile-first design.
 
-![Bonmoja Wallet Dashboard Screenshot](https://drive.google.com/file/d/1SdXrne_gro3Je9cxen9W24Cz2DSS2eU3/view?usp=sharing)
+![Bonmoja Wallet Dashboard Screenshot](https://res.cloudinary.com/drnqrrlfv/image/upload/v1743851489/Screenshot_2025-04-05_073432_lkomje.png)
 
 ## Demo
 
